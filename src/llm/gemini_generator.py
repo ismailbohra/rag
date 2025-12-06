@@ -122,8 +122,8 @@ class GeminiGenerator(BaseGenerator):
                 "completion_tokens": response.usage_metadata.candidates_token_count,
                 "total_tokens": response.usage_metadata.total_token_count,
             }
-        print(prompt)
-        print(response)
+        # print(prompt)
+        # print(response)
         return {
             "text": text_output,
             "raw": response,

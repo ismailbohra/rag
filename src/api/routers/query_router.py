@@ -150,7 +150,7 @@ def query_docs(
             - Do NOT use outside knowledge.
             - Do NOT hallucinate or invent facts.
             - If information is incomplete, answer only what the context supports.
-            - If the answer is NOT found in the context, say:
+            - If the answer is NOT related to the context, say:
                 "The provided context does not contain information about this."
 
             4. Keep your answer clear, concise, and factual.
