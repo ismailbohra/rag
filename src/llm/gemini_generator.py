@@ -52,7 +52,7 @@ class GeminiGenerator(BaseGenerator):
     def generate(
         self,
         prompt: str,
-        max_tokens: int = 1000,
+        max_tokens: int = 5000,
         temperature: float = 0.0,
         top_p: float = 1.0,
         stop: List[str] | None = None,
@@ -122,8 +122,8 @@ class GeminiGenerator(BaseGenerator):
                 "completion_tokens": response.usage_metadata.candidates_token_count,
                 "total_tokens": response.usage_metadata.total_token_count,
             }
-        print("prompt",prompt)
-        print("response",response)
+        print(prompt)
+        print(response)
         return {
             "text": text_output,
             "raw": response,
