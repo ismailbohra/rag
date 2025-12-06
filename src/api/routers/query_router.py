@@ -3,6 +3,8 @@ from fastapi.responses import StreamingResponse
 from src.api.schemas.query_schema import QueryRequest
 from src.api.dependencies.retriever_dep import get_retriever
 from src.api.dependencies.generator_dep import get_generator
+from src.llm.response_formatter import ResponseFormatter
+
 
 router = APIRouter(prefix="/query", tags=["Query"])
 
@@ -21,16 +23,16 @@ def query_docs(
     docs_text = "\n\n".join([doc.page_content for doc, _ in results])
 
     prompt = f"""
-You are a helpful assistant. Use the following context to answer:
+        You are a helpful assistant. Use the following context to answer:
 
-Context:
-{docs_text}
+        Context:
+        {docs_text}
 
-User Query:
-{query}
+        User Query:
+        {query}
 
-Answer:
-"""
+        Answer:
+        """
 
     # --------------- STREAMING MODE --------------------
     if payload.stream:
@@ -46,4 +48,5 @@ Answer:
 
     # --------------- NORMAL MODE -----------------------
     response = generator.generate(prompt)
-    return {"response": response["text"]}
+    formatted = ResponseFormatter.format_answer(response["text"], results)
+    return {"response": formatted}

@@ -5,8 +5,8 @@ from .base_generator import BaseGenerator
 
 class GeminiGenerator(BaseGenerator):
     """
-    Google Gemini text generator.
-    This matches the same interface as OpenAIGenerator and supports streaming.
+    Safe, crash-proof Gemini text generator.
+    Handles safety blocks, empty responses, and streaming.
     """
 
     def __init__(
@@ -20,14 +20,39 @@ class GeminiGenerator(BaseGenerator):
 
         self.model = model
         self.default_kwargs = kwargs
-
-        # Create model instance
         self._model = genai.GenerativeModel(model_name=self.model)
+
+    def _extract_text(self, response) -> str:
+        """
+        Safely extract text from the Gemini response.
+        Avoids crashes when response.text is invalid due to safety blocks.
+        """
+        try:
+            # Normal case — response.text usually works
+            return response.text
+        except Exception:
+            pass
+
+        # Fallback: manually extract text from candidates/parts
+        if not getattr(response, "candidates", None):
+            return ""
+
+        candidate = response.candidates[0]
+        if not getattr(candidate, "content", None):
+            return ""
+
+        parts = getattr(candidate.content, "parts", [])
+        texts = [
+            p.text for p in parts
+            if hasattr(p, "text") and isinstance(p.text, str)
+        ]
+
+        return " ".join(texts).strip()
 
     def generate(
         self,
         prompt: str,
-        max_tokens: int = 256,
+        max_tokens: int = 1000,
         temperature: float = 0.0,
         top_p: float = 1.0,
         stop: List[str] | None = None,
@@ -54,13 +79,17 @@ class GeminiGenerator(BaseGenerator):
             )
 
             for chunk in response:
-                if chunk.text:
-                    stream_handler.on_data(chunk.text)
+                try:
+                    if chunk.text:
+                        stream_handler.on_data(chunk.text)
+                except Exception:
+                    # Ignore chunks that fail due to safety
+                    pass
 
             return {
                 "text": stream_handler.get_result(),
                 "raw": None,
-                "usage": {}   # Gemini doesn't return usage for streaming
+                "usage": {}
             }
 
         # -------------------------------
@@ -72,8 +101,20 @@ class GeminiGenerator(BaseGenerator):
             safety_settings=None,
         )
 
-        text_output = response.text if hasattr(response, "text") else ""
+        # Safe text extraction
+        text_output = self._extract_text(response)
 
+        # Check safety block
+        if not text_output:
+            finish_reason = getattr(
+                response.candidates[0], "finish_reason", None
+            )
+            if finish_reason == 2:  # SAFETY
+                text_output = (
+                    "The model could not provide an answer due to safety rules."
+                )
+
+        # Usage (if available)
         usage = {}
         if hasattr(response, "usage_metadata"):
             usage = {
@@ -81,7 +122,8 @@ class GeminiGenerator(BaseGenerator):
                 "completion_tokens": response.usage_metadata.candidates_token_count,
                 "total_tokens": response.usage_metadata.total_token_count,
             }
-
+        print("prompt",prompt)
+        print("response",response)
         return {
             "text": text_output,
             "raw": response,
