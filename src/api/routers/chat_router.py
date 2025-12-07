@@ -9,6 +9,7 @@ from src.api.schemas.chat_schema import (
     SessionOut,
     ChatMessageOut
 )
+from src.api.utils.api_logging import log_api_call
 
 router = APIRouter(prefix="/chats", tags=["chats"])
 
@@ -36,6 +37,7 @@ def to_message_out(m: Chat) -> ChatMessageOut:
 
 
 @router.get("/sessions", response_model=List[SessionOut])
+@log_api_call("get_user_sessions")
 def get_sessions(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -51,6 +53,7 @@ def get_sessions(
 
 
 @router.post("/sessions", response_model=SessionOut)
+@log_api_call("create_chat_session")
 def create_session(
     payload: CreateSessionReq,
     current_user: User = Depends(get_current_user),
@@ -68,6 +71,7 @@ def create_session(
 
 
 @router.get("/sessions/{session_id}", response_model=List[ChatMessageOut])
+@log_api_call("get_session_messages")
 def get_session_messages(
     session_id: int,
     current_user: User = Depends(get_current_user),
@@ -100,6 +104,7 @@ def get_session_messages(
 
 
 @router.delete("/sessions/{session_id}")
+@log_api_call("delete_chat_session")
 def delete_session(
     session_id: int,
     current_user: User = Depends(get_current_user),

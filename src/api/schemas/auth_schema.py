@@ -21,13 +21,13 @@ class UserCreate(BaseModel):
 
 class UserLogin(BaseModel):
     """Schema for user login."""
-    username: str
+    email: str
     password: str
 
     class Config:
         json_schema_extra = {
             "example": {
-                "username": "john_doe",
+                "email": "john_doe@example.com",
                 "password": "secure_password_123"
             }
         }

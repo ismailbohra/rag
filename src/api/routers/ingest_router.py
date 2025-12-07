@@ -7,6 +7,7 @@ from src.api.schemas.ingest_schema import IngestRequest, IngestFileResponse
 from src.ingestion.pipeline import IngestionPipeline
 from src.embeddings.pipeline import EmbeddingPipeline
 from src.api.dependencies.vector_store_dep import get_vector_store
+from src.api.utils.api_logging import log_api_call
 
 router = APIRouter(prefix="/ingest", tags=["Ingestion"])
 
@@ -16,6 +17,7 @@ DATA_DIR.mkdir(exist_ok=True)
 
 
 @router.post("/", response_model=dict)
+@log_api_call("ingest_documents")
 def ingest_docs(
     payload: IngestRequest,
     store = Depends(get_vector_store)
@@ -45,6 +47,7 @@ def ingest_docs(
 
 
 @router.post("/upload", response_model=List[IngestFileResponse])
+@log_api_call("upload_files")
 async def ingest_files(
     files: List[UploadFile] = File(...),
     store = Depends(get_vector_store)

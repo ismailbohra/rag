@@ -6,6 +6,7 @@ from src.api.routers.auth_router import router as auth_router
 from src.api.routers.chat_router import router as chat_router
 from src.api.routers.ingest_router import router as ingest_router
 from src.api.routers.query_router import router as query_router
+from src.api.utils.api_logging import log_http_middleware
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -19,6 +20,9 @@ app = FastAPI(
         "persistAuthorization": True  # Keep token in browser storage
     }
 )
+
+# Add HTTP logging middleware (before other middleware)
+log_http_middleware(app)
 
 # Add CORS middleware
 app.add_middleware(

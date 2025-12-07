@@ -10,6 +10,7 @@ from src.models.tables import ChatSession, Chat, User
 from src.llm.response_formatter import ResponseFormatter
 from src.embeddings.pipeline import EmbeddingPipeline
 from src.vectorstore.store_factory import VectorStoreFactory
+from src.api.utils.api_logging import log_api_call
 from datetime import datetime
 import os
 
@@ -18,6 +19,7 @@ router = APIRouter(prefix="/query", tags=["Query"])
 
 
 @router.post("/", response_model=QueryResponse)
+@log_api_call("query_documents")
 def query_docs(
     payload: QueryPayload,
     current_user: User = Depends(get_current_user),
