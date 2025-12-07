@@ -1,6 +1,6 @@
 """Pydantic schemas for chat sessions and messages."""
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional, List, Dict
 from datetime import datetime
 
 
@@ -56,6 +56,7 @@ class ChatMessageOut(BaseModel):
     user_id: int
     role: str
     content: str
+    citations: Optional[List[Dict]] = None
     created_at: str
 
     class Config:
@@ -67,6 +68,7 @@ class ChatMessageOut(BaseModel):
                 "user_id": 1,
                 "role": "user",
                 "content": "What is RAG?",
+                "citations": None,
                 "created_at": "2025-12-06T10:00:00"
             }
         }

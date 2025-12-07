@@ -171,12 +171,17 @@ def query_docs(
     response = generator.generate(prompt)
     assistant_text = response["text"].strip()
 
-    # 8. Store assistant reply in chats table
+    # 11. Format response with citations BEFORE storing in DB
+    formatted = ResponseFormatter.format_answer(assistant_text, results)
+    citations = formatted.get("citations", [])
+
+    # 8. Store assistant reply in chats table with citations
     assistant_chat = Chat(
         session_id=session.id,
         user_id=current_user.id,
         role="assistant",
-        content=assistant_text
+        content=assistant_text,
+        citations=citations
     )
     db.add(assistant_chat)
     db.commit()
@@ -201,8 +206,5 @@ def query_docs(
     session.last_activity = datetime.utcnow()
     db.add(session)
     db.commit()
-
-    # 11. Format response with citations
-    formatted = ResponseFormatter.format_answer(assistant_text, results)
 
     return QueryResponse(session_id=session.id, response=formatted)

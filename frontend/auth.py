@@ -43,6 +43,15 @@ def login_screen(api_client: APIClient):
                         api_client.set_token(token)
                         user_info = api_client.get_current_user()
                         set_logged_in(token, user_info)
+                        
+                        # Load user's sessions automatically
+                        try:
+                            sessions = api_client.get_sessions()
+                            from state_manager import update_sessions_list
+                            update_sessions_list(sessions)
+                        except Exception as e:
+                            print(f"Warning: Could not load sessions: {str(e)}")
+                        
                         st.success("✅ Login successful!")
                         st.rerun()
                     else:

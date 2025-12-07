@@ -53,7 +53,6 @@ def render_citations(citations: List[Dict]):
 
 def render_chat_history(messages: List[Dict]):
     """Render all messages in chat history"""
-    
     if not messages:
         st.info("No messages yet. Start by asking a question!")
         return

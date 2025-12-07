@@ -32,6 +32,7 @@ def to_message_out(m: Chat) -> ChatMessageOut:
         user_id=m.user_id,
         role=m.role,
         content=m.content,
+        citations=m.citations if m.citations else None,
         created_at=m.created_at.isoformat()
     )
 

@@ -186,9 +186,10 @@ def main():
                     top_k=top_k
                 )
                 
-                # Extract response data
-                answer = response.get("answer", "")
-                citations = response.get("citations", [])
+                # Extract response data from nested response structure
+                response_data = response.get("response", {})
+                answer = response_data.get("answer", "")
+                citations = response_data.get("citations", [])
                 
                 # Add assistant message to state
                 add_message("assistant", answer, citations)

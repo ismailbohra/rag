@@ -91,6 +91,7 @@ class Chat(Base):
     )
     role = Column(Text, nullable=False)  # 'user' | 'assistant' | 'system'
     content = Column(Text, nullable=False)
+    citations = Column(JSON, server_default="[]")
     chat_metadata = Column(JSON, server_default="{}")
     created_at = Column(
         PG_TS(timezone=True),
