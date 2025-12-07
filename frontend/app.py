@@ -145,12 +145,12 @@ def main():
         user_input = chat_input_area("Type your question here...")
         
         if user_input:
-            # Add user message to state
+            # Add user message to state immediately
             add_message("user", user_input)
             
-            # Show message immediately
+            # Display user message immediately
             with st.chat_message("user", avatar="👤"):
-                st.write(user_input)
+                st.markdown(user_input)
             
             # Get active session or create new one
             session_id = st.session_state.get("active_session_id")
@@ -163,12 +163,18 @@ def main():
                     session_id = session_data.get("id")
                     set_active_session(session_id, session_title)
                 except Exception as e:
-                    show_error_message(f"Failed to create session: {str(e)}")
+                    st.error(f"❌ Failed to create session: {str(e)}")
                     st.stop()
+            
+            # Container for assistant response
+            response_container = st.container()
             
             # Send query
             try:
-                show_loading_message()
+                # Show loading state in container
+                with response_container:
+                    with st.chat_message("assistant", avatar="🤖"):
+                        st.markdown("⏳ Thinking...")
                 
                 # Get settings from sidebar
                 top_k = st.session_state.get("top_k", 5)
@@ -185,59 +191,56 @@ def main():
                 citations = response.get("citations", [])
                 
                 # Add assistant message to state
-                message_data = {
-                    "role": "assistant",
-                    "content": answer,
-                    "citations": citations if st.session_state.get("show_citations", True) else []
-                }
                 add_message("assistant", answer, citations)
                 
-                # Display assistant response
-                with st.chat_message("assistant", avatar="🤖"):
-                    st.write(answer)
-                    
-                    # Show citations if enabled and available
-                    if st.session_state.get("show_citations", True) and citations:
-                        with st.expander("📚 Sources"):
-                            st.markdown("**Retrieved Documents:**")
-                            for i, citation in enumerate(citations, 1):
-                                col1, col2 = st.columns([3, 1])
-                                
-                                with col1:
-                                    st.caption(
-                                        f"{i}. {citation.get('source', 'Unknown')} "
-                                        f"(Score: {citation.get('score', 0):.2f})"
-                                    )
-                                
-                                with col2:
-                                    if citation.get('pdf_file'):
-                                        if st.button(
-                                            "📥",
-                                            key=f"download_{i}",
-                                            help="Download PDF"
-                                        ):
-                                            try:
-                                                save_path = f".temp_downloads/{citation.get('pdf_file')}"
-                                                api_client.download_pdf(
-                                                    citation.get('pdf_file'),
-                                                    save_path
-                                                )
-                                                with open(save_path, "rb") as f:
-                                                    st.download_button(
-                                                        label="Download",
-                                                        data=f.read(),
-                                                        file_name=citation.get('pdf_file'),
-                                                        mime="application/pdf"
+                # Clear container and display actual response
+                response_container.empty()
+                with response_container:
+                    with st.chat_message("assistant", avatar="🤖"):
+                        st.markdown(answer)
+                        
+                        # Show citations if enabled and available
+                        if st.session_state.get("show_citations", True) and citations:
+                            with st.expander("📚 Sources"):
+                                st.markdown("**Retrieved Documents:**")
+                                for i, citation in enumerate(citations, 1):
+                                    col1, col2 = st.columns([3, 1])
+                                    
+                                    with col1:
+                                        st.caption(
+                                            f"{i}. {citation.get('source', 'Unknown')} "
+                                            f"(Score: {citation.get('score', 0):.2f})"
+                                        )
+                                    
+                                    with col2:
+                                        if citation.get('pdf_file'):
+                                            if st.button(
+                                                "📥",
+                                                key=f"download_{i}",
+                                                help="Download PDF"
+                                            ):
+                                                try:
+                                                    save_path = f".temp_downloads/{citation.get('pdf_file')}"
+                                                    api_client.download_pdf(
+                                                        citation.get('pdf_file'),
+                                                        save_path
                                                     )
-                                            except Exception as e:
-                                                st.error(f"Error downloading: {str(e)}")
+                                                    with open(save_path, "rb") as f:
+                                                        st.download_button(
+                                                            label="Download",
+                                                            data=f.read(),
+                                                            file_name=citation.get('pdf_file'),
+                                                            mime="application/pdf"
+                                                        )
+                                                except Exception as e:
+                                                    st.error(f"Error downloading: {str(e)}")
                 
-                show_success_message("Response generated")
+                st.success("✅ Response generated")
             
             except Exception as e:
-                show_error_message(f"Error sending query: {str(e)}")
-            
-            st.rerun()
+                response_container.empty()
+                with response_container:
+                    st.error(f"❌ Error sending query: {str(e)}")
     
     with tab2:
         # Document upload interface

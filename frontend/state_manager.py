@@ -66,12 +66,24 @@ def set_active_session(session_id: Optional[str], title: str = "New Chat"):
     st.session_state.active_session_title = title
 
 
-def add_message(role: str, content: str):
-    """Add a message to chat history"""
-    st.session_state.messages.append({
+def add_message(role: str, content: str, citations: list = None):
+    """Add a message to chat history
+    
+    Args:
+        role: "user" or "assistant"
+        content: Message content/text
+        citations: Optional list of citations for assistant messages
+    """
+    message = {
         "role": role,
         "content": content
-    })
+    }
+    
+    # Add citations if provided (for assistant messages)
+    if citations is not None:
+        message["citations"] = citations
+    
+    st.session_state.messages.append(message)
 
 
 def clear_messages():
